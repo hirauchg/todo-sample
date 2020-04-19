@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">TodoSample</string>
+
+
+    <string name="todo">TODO</string>
+    <string name="doing">DOING</string>
+    <string name="done">DONE</string>
+    <string name="delete">削除</string>
 </resources>
