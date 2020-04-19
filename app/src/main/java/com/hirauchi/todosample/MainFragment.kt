@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -41,10 +42,24 @@ class MainFragment : Fragment() {
         tasks.add(task4)
         tasks.add(task5)
 
-        listView.adapter = TasksAdapter(tasks)
+        listView.adapter = TasksAdapter(tasks, itemListener)
     }
 
-    private class TasksAdapter(private val tasks: List<Task>): BaseAdapter() {
+    val itemListener = object : TaskItemListener {
+        override fun onStateClick(task: Task) {
+            Toast.makeText(activity, "onStateClick : " + task.description, Toast.LENGTH_SHORT).show()
+        }
+
+        override fun onDescriptionClick(task: Task) {
+            Toast.makeText(activity, "onDescriptionClick : " + task.description, Toast.LENGTH_SHORT).show()
+        }
+
+        override fun onDeleteClick(task: Task) {
+            Toast.makeText(activity, "onDeleteClick : " + task.description, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private class TasksAdapter(private val tasks: List<Task>, private val listener: TaskItemListener): BaseAdapter() {
 
         private val stateTexts = listOf(R.string.todo, R.string.doing, R.string.done)
         private val stateColors = listOf(R.color.todo, R.color.doing, R.color.done)
@@ -62,12 +77,32 @@ class MainFragment : Fragment() {
             rowView.findViewById<TextView>(R.id.taskState).apply {
                 text = context.getString(stateTexts[task.state])
                 setTextColor(ContextCompat.getColor(context, stateColors[task.state]))
+                setOnClickListener {
+                    listener.onStateClick(task)
+                }
             }
 
             rowView.findViewById<TextView>(R.id.taskDescription).apply {
                 text = task.description
+                setOnClickListener {
+                    listener.onDescriptionClick(task)
+                }
             }
+
+            rowView.findViewById<ImageView>(R.id.taskDeleteButton).setOnClickListener {
+                listener.onDeleteClick(task)
+            }
+
             return rowView
         }
+    }
+
+    interface TaskItemListener {
+
+        fun onStateClick(task: Task)
+
+        fun onDescriptionClick(task: Task)
+
+        fun onDeleteClick(task: Task)
     }
 }
