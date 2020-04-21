@@ -7,15 +7,18 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.fragment_main.*
 
-class MainFragment : Fragment() {
+class MainFragment : Fragment(), TaskContract.View {
 
-    private lateinit var dao: TaskDao
+    override fun onLoadTasks(tasks: List<Task>) {
+        adapter.tasks = tasks
+    }
+
     private lateinit var adapter: TasksAdapter
+    private lateinit var presenter: TaskPresenter
 
     companion object {
         fun newInstance() = MainFragment()
@@ -30,42 +33,35 @@ class MainFragment : Fragment() {
 
         val context = context?: return
 
-        val db = TaskDatabase.getInstance(context)
-        dao = db.taskDao()
-
-        val tasks = dao.getAll()
-
-        adapter = TasksAdapter(tasks, itemListener)
+        adapter = TasksAdapter(itemListener)
         listView.adapter = adapter
 
-        addTaskButton.setOnClickListener {
-            val newTask = Task(0, 0, "New Task")
-            dao.insert(newTask)
+        val db = TaskDatabase.getInstance(context)
+        presenter = TaskPresenter(db.taskDao(), this)
+        presenter.loadTasks()
 
-            adapter.tasks = dao.getAll()
+        addTaskButton.setOnClickListener {
+            presenter.insertTask("New Task")
         }
     }
 
     val itemListener = object : TaskItemListener {
         override fun onStateClick(task: Task) {
-            Toast.makeText(activity, "onStateClick : " + task.description, Toast.LENGTH_SHORT).show()
+            presenter.updateTaskState(task)
         }
 
         override fun onDescriptionClick(task: Task) {
-            task.description = "Updated Task"
-            dao.update(task)
-            adapter.tasks = dao.getAll()
+            presenter.updateTaskDescription(task, "Updated Task")
         }
 
         override fun onDeleteClick(task: Task) {
-            dao.delete(task)
-            adapter.tasks = dao.getAll()
+            presenter.deleteTask(task)
         }
     }
 
-    private class TasksAdapter(tasks: List<Task>, private val listener: TaskItemListener): BaseAdapter() {
+    private class TasksAdapter(private val listener: TaskItemListener): BaseAdapter() {
 
-        var tasks: List<Task> = tasks
+        var tasks: List<Task> = listOf()
             set(tasks) {
                 field = tasks
                 notifyDataSetChanged()
