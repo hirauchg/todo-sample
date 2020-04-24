@@ -5,6 +5,8 @@ interface TaskContract {
     interface View {
 
         fun onLoadTasks(tasks: List<Task>)
+
+        fun showError(message: String?)
     }
 
     interface Presenter {

@@ -7,15 +7,12 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.fragment_main.*
 
 class MainFragment : Fragment(), TaskContract.View {
-
-    override fun onLoadTasks(tasks: List<Task>) {
-        adapter.tasks = tasks
-    }
 
     private lateinit var adapter: TasksAdapter
     private lateinit var presenter: TaskPresenter
@@ -37,7 +34,7 @@ class MainFragment : Fragment(), TaskContract.View {
         listView.adapter = adapter
 
         val db = TaskDatabase.getInstance(context)
-        presenter = TaskPresenter(db.taskDao(), this)
+        presenter = TaskPresenter(TaskRepository(db.taskDao()), this)
         presenter.loadTasks()
 
         addTaskButton.setOnClickListener {
@@ -57,6 +54,14 @@ class MainFragment : Fragment(), TaskContract.View {
         override fun onDeleteClick(task: Task) {
             presenter.deleteTask(task)
         }
+    }
+
+    override fun onLoadTasks(tasks: List<Task>) {
+        adapter.tasks = tasks
+    }
+
+    override fun showError(message: String?) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 
     private class TasksAdapter(private val listener: TaskItemListener): BaseAdapter() {

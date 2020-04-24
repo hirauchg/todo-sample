@@ -1,32 +1,72 @@
 package com.hirauchi.todosample
 
-class TaskPresenter(private val taskDao: TaskDao, private val view: TaskContract.View): TaskContract.Presenter {
+class TaskPresenter(private val taskRepository: TaskRepository, private val view: TaskContract.View): TaskContract.Presenter {
 
     override fun loadTasks() {
-        val tasks = taskDao.getAll()
-        view.onLoadTasks(tasks)
+        taskRepository.loadTasks(object : TaskDataSource.LoadTaskCallback {
+            override fun onLoadTasks(tasks: List<Task>) {
+                view.onLoadTasks(tasks)
+            }
+
+            override fun onError(error: Throwable) {
+                view.showError(error.message)
+            }
+        })
     }
 
     override fun insertTask(description: String) {
-        taskDao.insert(Task(0, 0, description))
-        loadTasks()
+        val task = Task(0, 0, description)
+
+        taskRepository.insertTask(task, object : TaskDataSource.Callback {
+            override fun onSuccess() {
+                loadTasks()
+            }
+
+            override fun onError(error: Throwable) {
+                view.showError(error.message)
+            }
+        })
     }
 
     override fun updateTaskState(task: Task) {
         task.state++
         if (task.state > 2) task.state = 0
-        taskDao.update(task)
-        loadTasks()
+
+        taskRepository.updateTask(task, object : TaskDataSource.Callback {
+            override fun onSuccess() {
+                loadTasks()
+            }
+
+            override fun onError(error: Throwable) {
+                view.showError(error.message)
+            }
+        })
     }
 
     override fun updateTaskDescription(task: Task, description: String) {
         task.description = description
-        taskDao.update(task)
-        loadTasks()
+
+        taskRepository.updateTask(task, object : TaskDataSource.Callback {
+            override fun onSuccess() {
+                loadTasks()
+            }
+
+            override fun onError(error: Throwable) {
+                view.showError(error.message)
+            }
+        })
     }
 
     override fun deleteTask(task: Task) {
-        taskDao.delete(task)
-        loadTasks()
+
+        taskRepository.deleteTask(task, object : TaskDataSource.Callback {
+            override fun onSuccess() {
+                loadTasks()
+            }
+
+            override fun onError(error: Throwable) {
+                view.showError(error.message)
+            }
+        })
     }
 }
