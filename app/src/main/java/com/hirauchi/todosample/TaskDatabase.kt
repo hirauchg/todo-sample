@@ -21,7 +21,6 @@ abstract class TaskDatabase : RoomDatabase() {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.applicationContext,
                         TaskDatabase::class.java, "Task.db")
-                        .allowMainThreadQueries()
                         .build()
                 }
                 return INSTANCE!!
